@@ -1,0 +1,39 @@
+version: '3.7'
+services:
+  businessbank-db:
+    container_name: ${COMPOSE_PROJECT_NAME}-db
+    hostname: ${COMPOSE_PROJECT_NAME}-db
+    image: postgres:15-bullseye
+    restart: always
+    environment:
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_USERNAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '5438:5432'
+    networks:
+      - businessbank-network
+  businessbank-api:
+    image: ${COMPOSE_PROJECT_NAME}-api
+    container_name: ${COMPOSE_PROJECT_NAME}-api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - platform=${PLATFORM}
+    env_file:
+      - .env
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./:/srv:rw
+    depends_on:
+      - businessbank-db
+    networks:
+      - businessbank-network
+networks:
+  businessbank-network:
+volumes:
+  pgdata: {}
